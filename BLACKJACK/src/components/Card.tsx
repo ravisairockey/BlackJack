@@ -13,8 +13,8 @@ const SUIT_SYMBOLS: Record<string, string> = {
 };
 
 const SUIT_COLORS: Record<string, string> = {
-  spade: "#e2e8f0",
-  club: "#e2e8f0",
+  spade: "#1a1a2e",
+  club: "#1a1a2e",
   heart: "#FF006E",
   diamond: "#FF4500",
 };
