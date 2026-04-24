@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import type { Card as CardType } from "@/core/types";
 import { SPRING_CONFIG } from "@/lib/utils";
@@ -27,103 +26,196 @@ interface CardProps {
 }
 
 export function Card({ card, hidden = false, index = 0, animate = true }: CardProps) {
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current || hidden) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const rotateX = ((e.clientY - centerY) / (rect.height / 2)) * -12;
-    const rotateY = ((e.clientX - centerX) / (rect.width / 2)) * 12;
-    setTilt({ x: rotateX, y: rotateY });
-  };
-
-  const handleMouseLeave = () => {
-    setTilt({ x: 0, y: 0 });
-  };
+  const isRed = card.suit === "heart" || card.suit === "diamond";
 
   return (
     <motion.div
-      ref={cardRef}
-      initial={animate ? { y: -120, rotateY: 180, opacity: 0, scale: 0.6 } : false}
-  animate={{
-    y: 0,
-    opacity: 1,
-    scale: 1,
-    rotateX: tilt.x,
-    rotateY: hidden ? 180 : tilt.y,
-  }}
+      layoutId={card.id}
+      initial={animate ? { scale: 0, y: -200, rotate: -20, opacity: 0 } : false}
+      animate={{ scale: 1, y: 0, rotate: 0, opacity: 1 }}
       transition={{
         ...SPRING_CONFIG.card,
-        delay: index * 0.12,
+        delay: index * 0.1,
       }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="relative w-16 h-24 sm:w-20 sm:h-28 perspective-1000 cursor-pointer"
-      style={{ transformStyle: "preserve-3d" }}
+      className="relative w-16 h-24 sm:w-20 sm:h-28 perspective-1000"
     >
-      {/* Front face */}
-      <div
-        className="absolute inset-0 rounded-xl backface-hidden overflow-hidden"
-        style={{
-          backfaceVisibility: "hidden",
-          WebkitBackfaceVisibility: "hidden",
-          background: "linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))",
-          border: "1px solid rgba(255,255,255,0.3)",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.5)",
-        }}
+      <motion.div
+        animate={{ rotateY: hidden ? 180 : 0 }}
+        transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+        className="w-full h-full preserve-3d relative"
+        style={{ transformStyle: "preserve-3d" }}
       >
-        {!hidden && (
-          <div className="flex flex-col items-center justify-center h-full p-1">
-            <span
-              className="text-xs sm:text-sm font-bold font-mono leading-none"
-              style={{ color: SUIT_COLORS[card.suit] }}
-            >
-              {card.rank}
-            </span>
-            <span
-              className="text-lg sm:text-2xl leading-none mt-0.5"
-              style={{ color: SUIT_COLORS[card.suit] }}
-            >
-              {SUIT_SYMBOLS[card.suit]}
-            </span>
-            {/* Corner decorations */}
-            <span
-              className="absolute top-1 left-1.5 text-[8px] sm:text-[10px] font-bold"
-              style={{ color: SUIT_COLORS[card.suit] }}
-            >
-              {card.rank}
-            </span>
-            <span
-              className="absolute bottom-1 right-1.5 text-[8px] sm:text-[10px] font-bold rotate-180"
-              style={{ color: SUIT_COLORS[card.suit] }}
-            >
-              {card.rank}
-            </span>
-          </div>
-        )}
-      </div>
+        {/* Front Face - Glass Frosted Shader Texture */}
+        <div
+          className="absolute inset-0 backface-hidden rounded-xl overflow-hidden flex flex-col justify-between p-2"
+          style={{
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            background: "linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75))",
+            backdropFilter: "blur(20px) saturate(1.2)",
+            WebkitBackdropFilter: "blur(20px) saturate(1.2)",
+            border: "1px solid rgba(255,255,255,0.5)",
+            boxShadow: `
+              0 8px 32px rgba(0,0,0,0.3),
+              inset 0 1px 0 rgba(255,255,255,0.8),
+              inset 0 -1px 0 rgba(255,255,255,0.3)
+            `,
+          }}
+        >
+          {!hidden && (
+            <>
+              {/* Top Left - Rank & Suit */}
+              <div className="flex flex-col items-start leading-none">
+                <span
+                  className="text-base sm:text-lg font-bold font-mono"
+                  style={{ color: SUIT_COLORS[card.suit] }}
+                >
+                  {card.rank}
+                </span>
+                <span
+                  className="text-lg sm:text-xl"
+                  style={{ color: SUIT_COLORS[card.suit] }}
+                >
+                  {SUIT_SYMBOLS[card.suit]}
+                </span>
+              </div>
 
-      {/* Back face */}
-      <div
-        className="absolute inset-0 rounded-xl backface-hidden"
-        style={{
-          backfaceVisibility: "hidden",
-          WebkitBackfaceVisibility: "hidden",
-          transform: "rotateY(180deg)",
-          background: "linear-gradient(135deg, #1a0a2e, #0d0620)",
-          border: "1px solid rgba(157,78,221,0.3)",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.4), inset 0 0 20px rgba(157,78,221,0.1)",
-        }}
-      >
-        <div className="absolute inset-2 rounded-lg border border-neon-purple/20 flex items-center justify-center">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-neon-purple/30 flex items-center justify-center">
-            <span className="text-neon-purple/60 text-lg">♠</span>
+              {/* Center - Large Suit with Frost Pattern */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-[0.08] pointer-events-none">
+                <span
+                  className="text-5xl sm:text-6xl"
+                  style={{ color: SUIT_COLORS[card.suit] }}
+                >
+                  {SUIT_SYMBOLS[card.suit]}
+                </span>
+              </div>
+
+              {/* Glass Frost Texture Overlay */}
+              <div
+                className="absolute inset-0 pointer-events-none opacity-30"
+                style={{
+                  background: `
+                    radial-gradient(circle at 30% 20%, rgba(255,255,255,0.8) 0%, transparent 50%),
+                    radial-gradient(circle at 70% 80%, rgba(255,255,255,0.4) 0%, transparent 40%),
+                    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 70%)
+                  `,
+                }}
+              />
+
+              {/* Shine Effect */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: "linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%)",
+                }}
+              />
+
+              {/* Bottom Right - Rank & Suit (Rotated) */}
+              <div className="flex flex-col items-end leading-none rotate-180">
+                <span
+                  className="text-base sm:text-lg font-bold font-mono"
+                  style={{ color: SUIT_COLORS[card.suit] }}
+                >
+                  {card.rank}
+                </span>
+                <span
+                  className="text-lg sm:text-xl"
+                  style={{ color: SUIT_COLORS[card.suit] }}
+                >
+                  {SUIT_SYMBOLS[card.suit]}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Back Face - Dark Glass with Frosted Texture */}
+        <div
+          className="absolute inset-0 backface-hidden rounded-xl overflow-hidden p-1.5"
+          style={{
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+            background: "linear-gradient(135deg, rgba(26,10,46,0.95), rgba(13,6,32,0.98))",
+            backdropFilter: "blur(30px) saturate(1.5)",
+            WebkitBackdropFilter: "blur(30px) saturate(1.5)",
+            border: "1px solid rgba(157,78,221,0.4)",
+            boxShadow: `
+              0 8px 32px rgba(0,0,0,0.5),
+              inset 0 1px 0 rgba(255,255,255,0.1),
+              inset 0 0 30px rgba(157,78,221,0.15)
+            `,
+          }}
+        >
+          {/* Inner Border with Frost Effect */}
+          <div
+            className="w-full h-full rounded-lg border flex items-center justify-center relative overflow-hidden"
+            style={{
+              borderColor: "rgba(157,78,221,0.3)",
+              background: `
+                radial-gradient(circle at 30% 30%, rgba(157,78,221,0.15) 0%, transparent 50%),
+                radial-gradient(circle at 70% 70%, rgba(0,245,255,0.1) 0%, transparent 50%)
+              `,
+            }}
+          >
+            {/* Frost Texture Pattern */}
+            <div
+              className="absolute inset-0 opacity-20"
+              style={{
+                backgroundImage: `
+                  repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 10px,
+                    rgba(255,255,255,0.03) 10px,
+                    rgba(255,255,255,0.03) 20px
+                  )
+                `,
+              }}
+            />
+
+            {/* Neon Element */}
+            <div className="relative">
+              <div
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 flex items-center justify-center"
+                style={{
+                  borderColor: "rgba(0,245,255,0.4)",
+                  background: "radial-gradient(circle, rgba(0,245,255,0.2) 0%, transparent 70%)",
+                  boxShadow: "0 0 20px rgba(0,245,255,0.3)",
+                }}
+              >
+                <span
+                  className="text-lg sm:text-xl font-bold"
+                  style={{
+                    color: "#00f5ff",
+                    textShadow: "0 0 10px rgba(0,245,255,0.8)",
+                  }}
+                >
+                  ♠
+                </span>
+              </div>
+            </div>
+
+            {/* Corner Accents */}
+            <div
+              className="absolute top-2 left-2 w-2 h-2 rounded-full"
+              style={{ background: "rgba(157,78,221,0.6)" }}
+            />
+            <div
+              className="absolute top-2 right-2 w-2 h-2 rounded-full"
+              style={{ background: "rgba(0,245,255,0.6)" }}
+            />
+            <div
+              className="absolute bottom-2 left-2 w-2 h-2 rounded-full"
+              style={{ background: "rgba(0,245,255,0.6)" }}
+            />
+            <div
+              className="absolute bottom-2 right-2 w-2 h-2 rounded-full"
+              style={{ background: "rgba(157,78,221,0.6)" }}
+            />
           </div>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
